@@ -19,8 +19,10 @@ public class Principal {
 
 	static Scanner lector = new Scanner(System.in);
 
-	static String fraseEncriptadaSimetrica;
-	static String fraseEncriptadaAsimetrica;
+
+	static byte[] bytesFraseCifrada;
+
+	
 	static SealedObject cocheCodificado;
 	
 	static KeyGenerator generadorSimetrico;
@@ -28,7 +30,9 @@ public class Principal {
 
 	static SecretKey claveSimetrica;
 	static KeyPair clavesAsimetricas;
-	
+
+	static Cipher codificador = null;
+
 	
 	
 	public static void main(String[] args) {
@@ -84,35 +88,50 @@ public class Principal {
 		String opcion;
 		
 		String frase = "";
-		cocheCodificado = null;
 		Coche cocheIntroducido;
+		
+		
+		try {
+			codificador = Cipher.getInstance("AES");
+		} catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
+			System.out.println("Error al crear la instancia codificadora");
+			return;
+		}
+
+		cocheCodificado = null;
 
 		while (continuar == true) {
 			
 			mostrarMenu();		
 			opcion = lector.nextLine();
 			switch (opcion) {
-			case "1"://Con la opción 1 el programa le pedirá al usuario una frase, la encriptará y la guardará en memoria.
-				System.out.println("Introduce la frase a encriptar");		
-				frase = lector.nextLine();		
-				codificarSimetrica(frase);
-				frase = "";
-				break;
-			case "2"://Con la opción 2 el programa mostrará la frase encriptada (no debería ser legible)
-				System.out.println(fraseEncriptadaSimetrica);
-				break;				
-			case "3"://Con la opción 3 el programa mostrará la frase desencriptándola.
-				System.out.println(decodificarSimetrica());
-				break;
-			case "4"://Encriptar Coche
-				cocheIntroducido = IntroducirCoche();
-				codificarCocheSimetrico(cocheIntroducido);
-				break;				
-			case "5":
-				continuar = false;
-				break;
-			default:
+				case "1"://Con la opción 1 el programa le pedirá al usuario una frase, la encriptará y la guardará en memoria.
+					System.out.println("Introduce la frase a codificar");		
+					frase = lector.nextLine();		
+					codificarSimetrica(frase);
+					frase = "Frase codificada.";
+					break;
+				case "2"://Con la opción 2 el programa mostrará la frase encriptada (no debería ser legible)
+					System.out.println("Frase codificada");		
+					frase = new String(bytesFraseCifrada);
+					break;				
+				case "3"://Con la opción 3 el programa mostrará la frase desencriptándola.
+					System.out.println("Frase decodificada");		
+					frase = decodificarSimetrica();
+					break;
+				case "4"://Encriptar Coche
+					cocheIntroducido = IntroducirCoche();
+					frase = codificarCocheSimetrico(cocheIntroducido);
+					break;				
+				case "5":
+					continuar = false;
+					frase = "Volviendo al menu principal";
+					break;
+				default:
+					frase = "Opción no contemplada";
 			}
+			System.out.println(frase);
+			frase = "";
 		}
 
 	}
@@ -125,32 +144,43 @@ public class Principal {
 		cocheCodificado = null;
 		
 		Coche cocheIntroducido;
-		
+
+		try {
+			codificador = Cipher.getInstance("RSA");
+		} catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
+			System.out.println("Error al crear la instancia codificadora");
+			return;
+		}
+
 		while (continuar == true) {
 			mostrarMenu();		
 			opcion = lector.nextLine();
 			switch (opcion) {
-			case "1"://Con la opción 1 el programa le pedirá al usuario una frase, la encriptará y la guardará en memoria.
-				System.out.println("Introduce la frase a encriptar");		
-				frase = lector.nextLine();		
-				codificarAsimetrica(frase);
-				frase = "";
-				break;
-			case "2"://Con la opción 2 el programa mostrará la frase encriptada (no debería ser legible)
-				System.out.println(fraseEncriptadaAsimetrica);
-				break;				
-			case "3"://Con la opción 3 el programa mostrará la frase desencriptándola.
-				System.out.println(decodificarAsimetrica());
-				break;
-			case "4"://Encriptar Coche
-				cocheIntroducido = IntroducirCoche();
-				codificarCocheASimetrico(cocheIntroducido);
-				break;				
-			case "5":
-				continuar = false;
-				break;
-			default:
-			}
+				case "1"://Con la opción 1 el programa le pedirá al usuario una frase, la encriptará y la guardará en memoria.
+					System.out.println("Introduce la frase a encriptar");		
+					frase = lector.nextLine();		
+					frase = codificarAsimetrica(frase);
+					break;
+				case "2"://Con la opción 2 el programa mostrará la frase encriptada (no debería ser legible)
+					frase = new String(bytesFraseCifrada);
+					break;				
+				case "3"://Con la opción 3 el programa mostrará la frase desencriptándola.
+					frase = decodificarAsimetrica();
+					break;
+				case "4"://Encriptar Coche
+					cocheIntroducido = IntroducirCoche();
+					frase = codificarCocheASimetrico(cocheIntroducido);
+					break;				
+				case "5":
+					continuar = false;
+					frase = "Volviendo al menu principal";
+					break;
+				default:
+					frase = "Opción no contemplada";
+				}
+			System.out.println(frase);
+			frase = "";
+
 		}
 
 	}
@@ -164,6 +194,7 @@ public class Principal {
 	}
 
 	private static Coche IntroducirCoche() {
+		
 		Coche resultado = new Coche();
 		
 		String matricula;		
@@ -171,7 +202,9 @@ public class Principal {
 		String modelo;		
 		String precio;
 		
-
+		/*
+		 * Pedimos los datos del coche  
+		 */
 		System.out.println("  Introducir Coche");
 		System.out.println("--------------------");
 
@@ -184,59 +217,53 @@ public class Principal {
 		System.out.println("Introduce el precio:");
 		precio = lector.nextLine();
 
+		/*
+		 * Creamos el coche y lo retornmamos
+		 */
 		resultado = new Coche(matricula, marca, modelo, precio);
-		
 		return resultado;
 	}
 	
 	
-	private static void codificarSimetrica(String frase) {
+	private static String codificarSimetrica(String frase) {
 
 		byte[] bytesFrase;
-		byte[] bytesMensajeCifrado;
 
-		Cipher codificador = null;
+		bytesFrase = frase.getBytes(); // Pasamos la frase a un array de bytes
 				
+		/*
+		 * Inicializamos el codificador en modo codificador con la clave privada
+		 * y obtenemos los bytes de la frase encriptada (dentro del atributo bytesFraseCifrada)
+		 */
 		try {
-			codificador = Cipher.getInstance("AES");
 			codificador.init(Cipher.ENCRYPT_MODE, claveSimetrica);
-			bytesFrase = frase.getBytes();
-			bytesMensajeCifrado = codificador.doFinal(bytesFrase);//codificar el mensaje original
-			fraseEncriptadaSimetrica = new String(bytesMensajeCifrado);
-		} catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
-			System.out.println("Error al crear la instancia codificadora");
-			return;
+			bytesFraseCifrada = codificador.doFinal(bytesFrase);//codificar el mensaje original
 		} catch (InvalidKeyException e) {
-			System.out.println("Error: la clave no es adecuada.");
-			return;
+			return "Error: la clave no es adecuada.";
 		} catch (IllegalBlockSizeException e) {
-			System.out.println("Error por bloque al codificar la frase por "+ e.getMessage());
-			return;
+			return "Error por bloque al codificar la frase por "+ e.getMessage();
 		} catch (BadPaddingException e) {
-			System.out.println("Error (por rellenar bloques) al codificar la frase por "+ e.getMessage());
-			return;
+			return "Error (por rellenar bloques) al codificar la frase por "+ e.getMessage();
 		}
 		
-		
+		return "Frase codificada simetricamente";
 	}
+	
 
 	private static String decodificarSimetrica() {
 		
-		String resultado = "";
-		
 		byte[] bytesFrase;
-		byte[] bytesFraseCifrada;
+		String resultado = "";
 
-		Cipher descodificador = null;
-		
+		/*
+		 * Ponemos el codificador en modo decodificador con la clave publica, ya que hemos codificado
+		 * con la clave privada y obtenemos los bytes de la decodificación
+		 *   
+		 */
+			
 		try {
-			descodificador = Cipher.getInstance("AES");
-			descodificador.init(Cipher.DECRYPT_MODE, claveSimetrica);
-			bytesFraseCifrada = fraseEncriptadaSimetrica.getBytes();
-			bytesFrase = descodificador.doFinal(bytesFraseCifrada);//decodificar el mensaje codificado
-		} catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
-			System.out.println("Error al crear la instancia decodificadora");
-			return "";
+			codificador.init(Cipher.DECRYPT_MODE, claveSimetrica);
+			bytesFrase = codificador.doFinal(bytesFraseCifrada);//decodificar el mensaje codificado
 		} catch (InvalidKeyException e) {
 			System.out.println("Error: la clave no es adecuada.");
 			return "";
@@ -248,122 +275,117 @@ public class Principal {
 			return "";
 		}
 
-		resultado = new String(bytesFrase);
-		
+		/*
+		 * Convertimos los bytes decodificados a una cadena de texto y la retornamos.
+		 */
+		resultado = new String(bytesFrase);		
 		return resultado;
 	}
 	
-	private static void codificarCocheSimetrico(Coche pCoche) {
+	private static String codificarCocheSimetrico(Coche pCoche) {
+		
+		String resultado;
+		/*
+		 * Iniciamos el codificador en modo codificador con la clave simetrica
+		 * y codificamos el coche codificado
+		 */
 
-		Cipher codificador = null;
-				
 		try {
-			codificador = Cipher.getInstance("AES");
 			codificador.init(Cipher.ENCRYPT_MODE, claveSimetrica);
 			cocheCodificado = new SealedObject(pCoche, codificador);
-		} catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
-			System.out.println("Error al crear la instancia decodificadora");
-			return;
 		} catch (InvalidKeyException e) {
-			System.out.println("Error: la clave no es adecuada.");
-			return;
+			return "Error: la clave no es adecuada.";
 		} catch (IllegalBlockSizeException | IOException e) {
-			System.out.println("Error al decodificar el coche" + e.getMessage());
-			return;
+			return "Error al decodificar el coche" + e.getMessage();
 		}
 		
-		System.out.println("El coche " + pCoche.toString());
-		System.out.println("Codificado es " + cocheCodificado.toString());
-		
+		/*
+		 *  Retornamos el coche introducdo y el coche codificado.
+		 */
+
+		resultado = "El coche " + pCoche.toString() + "\n" + "Codificado es " + cocheCodificado.toString();
+		return resultado;
 		
 	}
 	
-	private static void codificarAsimetrica(String frase) {
+	private static String codificarAsimetrica(String frase) {
 			
-			Cipher cifrador = null;
-
 			byte[] bytesFrase;
-			byte[] bytesFraseCifrada;
 
-			
-			
+			bytesFrase = frase.getBytes(); // Pasamos la frase a un array de bytes
+
+			/*
+			 * Inicializamos el codificador en modo codificador con la clave privada
+			 * y obtenemos los bytes de la frase encriptada (dentro del atributo bytesFraseCifrada)
+			 */
 			try {
-				cifrador = Cipher.getInstance("RSA");
-				cifrador.init(Cipher.ENCRYPT_MODE, clavesAsimetricas.getPrivate());
-				bytesFrase = frase.getBytes();
-				bytesFraseCifrada = cifrador.doFinal(bytesFrase);
-			} catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
-				System.out.println("Error al crear la instancia codificadora");
-				return;
+				codificador.init(Cipher.ENCRYPT_MODE, clavesAsimetricas.getPrivate());
+				bytesFraseCifrada = codificador.doFinal(bytesFrase);
 			} catch (InvalidKeyException e) {
-				System.out.println("Error: la clave no es adecuada.");
-				return;
+				return "Error: la clave no es adecuada.";
 			} catch (IllegalBlockSizeException e) {
-				System.out.println("Error por bloque al codificar la frase por "+ e.getMessage());
-				return;
+				return "Error por bloque al codificar la frase por "+ e.getMessage();
 			} catch (BadPaddingException e) {
-				System.out.println("Error (por rellenar bloques) al codificar la frase por "+ e.getMessage());
-				return;
+				return "Error (por rellenar bloques) al codificar la frase por "+ e.getMessage();
 			}
 			
-			fraseEncriptadaAsimetrica = new String(bytesFraseCifrada);
+			return "Frase codificada asimetricamente.";
 			
 	}
 
+	
 	private static String decodificarAsimetrica() {
-		String resultado = "";
 		
-		Cipher descifrador = null;
-
 		byte[] bytesFrase;
-		byte[] bytesFraseCifrada;
+		String resultado = "";
 
-				
+		/*
+		 * Ponemos el codificador en modo decodificador con la clave publica, ya que hemos codificado
+		 * con la clave privada y obtenemos los bytes de la decodificación
+		 *   
+		 */
+			
 		try {
-			descifrador = Cipher.getInstance("RSA");
-			bytesFraseCifrada = fraseEncriptadaAsimetrica.getBytes();
-			descifrador.init(Cipher.DECRYPT_MODE, clavesAsimetricas.getPublic());
-			bytesFrase = descifrador.doFinal(bytesFraseCifrada);
-		} catch (NoSuchAlgorithmException | NoSuchPaddingException e2) {
-			System.out.println("Error al crear la instancia decodificadora");
-			return "";
+			codificador.init(Cipher.DECRYPT_MODE, clavesAsimetricas.getPublic());
+			bytesFrase = codificador.doFinal(bytesFraseCifrada);
 		} catch (InvalidKeyException e1) {
-			System.out.println("Error: la clave no es adecuada.");
-			return "";
+			return "Error: la clave no es adecuada.";
 		} catch (IllegalBlockSizeException e) {
-			System.out.println("Error por bloque al codificar la frase por "+ e.getMessage());
-			return "";
+			return "Error por bloque al codificar la frase por "+ e.getMessage();
 		} catch (BadPaddingException e) {
-			System.out.println("Error (por rellenar bloques) al codificar la frase por "+ e.getMessage());
-			return "";
+			return "Error (por rellenar bloques) al decodificar la frase por "+ e.getMessage();
 		}
-		
+
+		/*
+		 * Convertimos los bytes decodificados a una cadena de texto y la retornamos.
+		 */
 		resultado = new String(bytesFrase);
 		return resultado;
 	}
 
-	private static void codificarCocheASimetrico(Coche pCoche) {
+	
+	private static String codificarCocheASimetrico(Coche pCoche) {
 
-		Cipher codificador = null;
-				
+		String resultado;
+		/*
+		 * Iniciamos el codificador en modo codificador con la clave privada
+		 * y codificamos el coche codificado
+		 */
 		try {
-			codificador = Cipher.getInstance("RSA");
 			codificador.init(Cipher.ENCRYPT_MODE, clavesAsimetricas.getPrivate());
 			cocheCodificado = new SealedObject(pCoche, codificador);
-		} catch (NoSuchAlgorithmException | NoSuchPaddingException e) {
-			System.out.println("Error al crear la instancia decodificadora");
-			return;
 		} catch (InvalidKeyException e) {
-			System.out.println("Error: la clave no es adecuada.");
-			return;
+			return "Error: la clave no es adecuada.";
 		} catch (IllegalBlockSizeException | IOException e) {
-			System.out.println("Error al decodificar el coche " +e.getMessage() );
-			return;
+			return "Error al decodificar el coche " +e.getMessage();
 		}
 		
-		System.out.println("El coche " + pCoche.toString());
-		System.out.println("Codificado es " +cocheCodificado.toString());
+		/*
+		 *  Retornamos el coche introducdo y el coche codificado.
+		 */
+		resultado = "El coche " + pCoche.toString() + "\n" + "Codificado es " + cocheCodificado.toString();
 		
+		return resultado;
 	}
 	
 
