@@ -103,9 +103,11 @@ private static  void CriptografiaSimetrica() {
 		}
 
 		/*
-		 * bucle del menu de codificación simetrica
+		 * bucle del menu de codificación asimetrica
 		 */
 		while (continuar == true) {			
+			System.out.println("   Codificacion simetrica");
+			System.out.println("----------------------------");
 			mostrarMenu();		
 			opcion = lector.nextLine();
 			switch (opcion) {
@@ -116,18 +118,18 @@ private static  void CriptografiaSimetrica() {
 					frase = "Frase codificada.";
 					break;
 				case "2"://Con la opción 2 el programa mostrará la frase encriptada (no debería ser legible)
-					System.out.println("Frase codificada");		
-					frase = new String(bytesFraseCifrada);
+					frase = mostrarFraseEncriptada();
 					break;				
 				case "3"://Con la opción 3 el programa mostrará la frase desencriptándola.
-					System.out.println("Frase decodificada");		
 					frase = decodificarSimetrica();
 					break;
 				case "4"://Encriptar Coche
 					cocheIntroducido = IntroducirCoche();
 					frase = codificarCocheSimetrico(cocheIntroducido);
 					break;				
-				case "5":
+				case "5": // Salimos del submenu simetrico anulando el codificador y la frase encriptada
+					codificador = null;
+					bytesFraseCifrada = null;
 					continuar = false;
 					frase = "Volviendo al menu principal";
 					break;
@@ -166,6 +168,8 @@ private static  void CriptografiaSimetrica() {
 		 * bucle del menu de codificación asimetrica
 		 */
 		while (continuar == true) {
+			System.out.println("   Codificacion asimetrica");
+			System.out.println("-----------------------------");
 			mostrarMenu();		
 			opcion = lector.nextLine();
 			switch (opcion) {
@@ -175,7 +179,7 @@ private static  void CriptografiaSimetrica() {
 					frase = codificarAsimetrica(frase);
 					break;
 				case "2"://Con la opción 2 el programa mostrará la frase encriptada (no debería ser legible)
-					frase = new String(bytesFraseCifrada);
+					frase = mostrarFraseEncriptada();
 					break;				
 				case "3"://Con la opción 3 el programa mostrará la frase desencriptándola.
 					frase = decodificarAsimetrica();
@@ -184,7 +188,9 @@ private static  void CriptografiaSimetrica() {
 					cocheIntroducido = IntroducirCoche();
 					frase = codificarCocheASimetrico(cocheIntroducido);
 					break;				
-				case "5":
+				case "5": // Salimos del submenu asimetrico anulando el codificador y la frase encriptada
+					codificador = null;
+					bytesFraseCifrada = null;
 					continuar = false;
 					frase = "Volviendo al menu principal";
 					break;
@@ -280,10 +286,21 @@ private static  void CriptografiaSimetrica() {
 		String resultado = "";
 
 		/*
+		 * comprobramos que tenemos una frase encriptada 
+		 */
+		if (bytesFraseCifrada == null) {
+			return "No existe una frase que desecriptar";
+		}
+
+		if (bytesFraseCifrada.length == 0) {
+			return "No existe una frase que desecriptar";
+		}
+
+		/*
 		 * Ponemos el codificador en modo decodificador con la clave publica, ya que hemos codificado
 		 * con la clave privada y obtenemos los bytes de la decodificación
 		 *   
-		 */			
+		 */		
 		try {
 			codificador.init(Cipher.DECRYPT_MODE, claveSimetrica);
 			bytesFrase = codificador.doFinal(bytesFraseCifrada);//decodificar el mensaje codificado
@@ -374,11 +391,22 @@ private static  void CriptografiaSimetrica() {
 		String resultado = "";
 
 		/*
+		 * comprobramos que tenemos una frase encriptada 
+		 */
+		if (bytesFraseCifrada == null) {
+			return "No existe una frase que desecriptar";
+		}
+
+		if (bytesFraseCifrada.length == 0) {
+			return "No existe una frase que desecriptar";
+		}
+
+
+		/*
 		 * Ponemos el codificador en modo decodificador con la clave publica, ya que hemos codificado
 		 * con la clave privada y obtenemos los bytes de la decodificación
 		 *   
 		 */
-			
 		try {
 			codificador.init(Cipher.DECRYPT_MODE, clavesAsimetricas.getPublic());
 			bytesFrase = codificador.doFinal(bytesFraseCifrada);
@@ -426,6 +454,35 @@ private static  void CriptografiaSimetrica() {
 		
 		return resultado;
 	}
+
 	
+	private static String mostrarFraseEncriptada() {
+		
+		boolean tieneContenido;
+		String resultado = "";
+		
+		/*
+		 * comprobramos que tenemos una frase encriptada 
+		 */
+		tieneContenido = true;
+		if (bytesFraseCifrada == null) {
+			tieneContenido = false;
+			resultado = "No existe una frase que desecriptar";
+		} else {
+			if (bytesFraseCifrada.length == 0) {
+				tieneContenido = false;
+				resultado = "No existe una frase que desecriptar";
+			}
+		}
+
+		/*
+		 * Si tiene contenido creamos la frase
+		 */
+		if (tieneContenido == true) {
+			resultado = new String(bytesFraseCifrada);
+		}
+		
+		return resultado;
+	}
 
 }
